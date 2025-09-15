@@ -2,7 +2,8 @@
 
 namespace notes.Models
 {
-    public class Note
+    // Класс записок
+    public class Note 
     {
         public int NoteId { get; set; }
         public DateTime Created {get; set;} = DateTime.Now;
