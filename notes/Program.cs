@@ -50,6 +50,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapGet("/string", () => { return "Test"; });
+app.MapGet("/number", () => { return 2; });
+app.MapGet("/data", () => { return DateTime.Now; });
+app.MapGet("/obj", () => new {День = "Вторник", Асия = "Курмаева", Время = DateTime.Now });
+
 app.UseHttpsRedirection();
     
 app.UseAuthorization();
