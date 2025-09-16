@@ -1,13 +1,47 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using notes.Data;
+using System.Linq.Expressions;
+
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"), 
+        new MySqlServerVersion(new Version(9, 4, 0))));
+
+// Add services to the container.
+
 var app = builder.Build();
+
+using(var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        var canConnect = context.Database.CanConnect();
+
+        if (canConnect)
+        {
+            logger.LogInformation("Database connection successful.");
+            logger.LogInformation($"📊 База данных: {context.Database.GetDbConnection().Database}");
+            logger.LogInformation($"🔗 Сервер: {context.Database.GetDbConnection().DataSource}");
+        }
+        else
+        {
+            logger.LogWarning("Database connection failed.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Ошибка при подключении к базе данных.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -17,9 +51,32 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+    
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+
+// Класс контекста базы данных
+namespace notes.Data
+{
+    public class ApplicationDbContext : DbContext
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
+        // Добавление DbSet для моделей
+        public DbSet<notes.Models.Author> Authors { get; set; }
+        public DbSet<notes.Models.Note> Notes { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            // Дополнительная конфигурация моделей, если необходимо
+        }
+
+    }
+}
