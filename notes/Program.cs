@@ -50,6 +50,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapGet("obj2", () => new { Автор = "Глеб", Id = 2 });
 app.MapGet("/string", () => { return "Test"; });
 app.MapGet("/number", () => { return 2; });
 app.MapGet("/data", () => { return DateTime.Now; });
