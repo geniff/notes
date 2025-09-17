@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(
@@ -57,7 +58,16 @@ app.MapGet("/data", () => { return DateTime.Now; });
 app.MapGet("/obj", () => new {День = "Вторник", Асия = "Курмаева", Время = DateTime.Now });
 
 app.UseHttpsRedirection();
-    
+
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseCors(policy =>
+    policy.WithOrigins("http://localhost:32771")
+          .AllowAnyMethod()
+          .AllowAnyHeader());
+
 app.UseAuthorization();
 
 app.MapControllers();
