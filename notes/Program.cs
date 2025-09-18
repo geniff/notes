@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using notes.Data;
+using notes.Models;
 using System.Linq.Expressions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         new MySqlServerVersion(new Version(9, 4, 0))));
 
 // Add services to the container.
-
 var app = builder.Build();
 
 using(var scope = app.Services.CreateScope())
@@ -52,7 +52,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("obj2", () => new { Автор = "Глеб", Id = 2 });
-app.MapGet("/string", () => { return "Test"; });
+app.MapGet("/string", () => new DayModel());
 app.MapGet("/number", () => { return 2; });
 app.MapGet("/data", () => { return DateTime.Now; });
 app.MapGet("/obj", () => new {День = "Вторник", Асия = "Курмаева", Время = DateTime.Now });
@@ -64,7 +64,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseCors(policy =>
-    policy.WithOrigins("http://localhost:32771")
+    policy.WithOrigins("http://localhost:5020")
           .AllowAnyMethod()
           .AllowAnyHeader());
 
@@ -73,7 +73,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
 
 // Класс контекста базы данных
 namespace notes.Data
