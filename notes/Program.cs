@@ -1,24 +1,39 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using notes.Data;
 using notes.Models;
 using System.Linq.Expressions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Добавление сервисов
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Правильная конфигурация Swagger
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Notes API",
+        Version = "v1",
+        Description = "API для управления заметками и авторами"
+    });
+});
+
 builder.Services.AddCors();
 
+// Конфигурация базы данных
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"), 
+        builder.Configuration.GetConnectionString("DefaultConnection"),
         new MySqlServerVersion(new Version(9, 4, 0))));
 
-// Add services to the container.
 var app = builder.Build();
 
-using(var scope = app.Services.CreateScope())
+// Проверка подключения к базе данных
+using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var logger = services.GetRequiredService<ILogger<Program>>();
@@ -29,13 +44,21 @@ using(var scope = app.Services.CreateScope())
 
         if (canConnect)
         {
-            logger.LogInformation("Database connection successful.");
+            logger.LogInformation("Подключение к базе данных успешно.");
             logger.LogInformation($"📊 База данных: {context.Database.GetDbConnection().Database}");
             logger.LogInformation($"🔗 Сервер: {context.Database.GetDbConnection().DataSource}");
+            var note = new Note
+            {
+                Title = "Тестовая записка",
+                Article = "Это тестовая записка для проверки подключения к базе данных.",
+            };
+            
+            context.Notes.Add(note);
+            context.SaveChanges();
         }
         else
         {
-            logger.LogWarning("Database connection failed.");
+            logger.LogWarning("Не удалось подключиться к базе данных.");
         }
     }
     catch (Exception ex)
@@ -44,23 +67,25 @@ using(var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
+// Настройка конвейера запросов
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Notes API v1");
+    });
 }
 
+// Маршруты API
 app.MapGet("obj2", () => new { Автор = "Глеб", Id = 2 });
-app.MapGet("/string", () => new DayModel());
+app.MapGet("/string", () => new DayModel().GetDay());
 app.MapGet("/number", () => { return 2; });
 app.MapGet("/data", () => { return DateTime.Now; });
-app.MapGet("/obj", () => new {День = "Вторник", Асия = "Курмаева", Время = DateTime.Now });
+app.MapGet("/obj", () => new { День = "Вторник", Асия = "Курмаева", Время = DateTime.Now });
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-
 app.UseRouting();
 
 app.UseCors(policy =>
@@ -69,29 +94,5 @@ app.UseCors(policy =>
           .AllowAnyHeader());
 
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
-
-// Класс контекста базы данных
-namespace notes.Data
-{
-    public class ApplicationDbContext : DbContext
-    {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
-        // Добавление DbSet для моделей
-        public DbSet<notes.Models.Author> Authors { get; set; }
-        public DbSet<notes.Models.Note> Notes { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            // Дополнительная конфигурация моделей, если необходимо
-        }
-
-    }
-}
