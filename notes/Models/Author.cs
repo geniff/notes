@@ -21,8 +21,6 @@ namespace notes.Models
         [Required]
         [Column("rights", TypeName = "ENUM('a','u')")]
         public char Rights { get; set; } = 'u'; // u - user, a - admin
-        [EmailAddress]
-        public String? email { get; set; }
         public List <Note>? Notes { get; set; }
     }
 }

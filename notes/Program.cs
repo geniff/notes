@@ -55,6 +55,16 @@ using (var scope = app.Services.CreateScope())
             
             context.Notes.Add(note);
             context.SaveChanges();
+
+            var author = new Author
+            {
+                Id = 1,
+                Login = "Глеб",
+                PasswordHash = "12345",
+            };
+            context.Authors.Add(author);
+            context.SaveChanges();
+
         }
         else
         {
@@ -81,7 +91,13 @@ if (app.Environment.IsDevelopment())
 app.MapGet("obj2", () => new { Автор = "Глеб", Id = 2 });
 app.MapGet("/string", () => new DayModel().GetDay());
 app.MapGet("/number", () => { return 2; });
-app.MapGet("/data", () => { return DateTime.Now; });
+app.MapGet("/data", () => { return DateTime.Now; })
+    .WithOpenApi(operation => 
+    {
+        operation.Summary = "Получить текущую дату и время";
+        operation.Description = "Этот эндпоинт возвращает текущую дату и время сервера.";
+        return operation;
+    });
 app.MapGet("/obj", () => new { День = "Вторник", Асия = "Курмаева", Время = DateTime.Now });
 
 app.UseHttpsRedirection();
