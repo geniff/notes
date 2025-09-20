@@ -11,6 +11,7 @@ namespace notes.Data
         // Добавление DbSet для моделей
         public DbSet<notes.Models.Author> Authors { get; set; }
         public DbSet<notes.Models.Note> Notes { get; set; }
+        public DbSet<notes.Models.Comments> Comments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

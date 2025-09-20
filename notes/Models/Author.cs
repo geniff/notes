@@ -9,7 +9,7 @@ namespace notes.Models
         [Key]
         [Column ("id_author")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // AI
-        public int Id { get; set; }
+        public int AuthorId { get; set; }
         [Required]
         [Column("login")]
         [MaxLength(45)]

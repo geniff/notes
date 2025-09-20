@@ -58,11 +58,19 @@ using (var scope = app.Services.CreateScope())
 
             var author = new Author
             {
-                Id = 1,
-                Login = "Глеб",
+                Login = "Глеб1",
                 PasswordHash = "12345",
             };
             context.Authors.Add(author);
+            context.SaveChanges();
+
+            var comment = new Comments
+            {
+                AuthorId = author.AuthorId,
+                Comment = "text",
+                Note = note
+            };
+            context.Comments.Add(comment);
             context.SaveChanges();
 
         }
@@ -105,7 +113,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseCors(policy =>
-    policy.WithOrigins("http://localhost:5020")
+    policy.AllowAnyOrigin()
           .AllowAnyMethod()
           .AllowAnyHeader());
 

@@ -46,7 +46,7 @@
             [HttpPut("{id}")]
             public async Task<IActionResult> PutAuthor(int id, Author author)
             {
-                if (id != author.Id)
+                if (id != author.AuthorId)
                 {
                     return BadRequest();
                 }
@@ -79,7 +79,7 @@
                 _context.Authors.Add(author);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction("GetAuthor", new { id = author.Id }, author);
+                return CreatedAtAction("GetAuthor", new { id = author.AuthorId }, author);
             }
 
             // DELETE: api/Authors/5
@@ -100,7 +100,7 @@
 
             private bool AuthorExists(int id)
             {
-                return _context.Authors.Any(e => e.Id == id);
+                return _context.Authors.Any(e => e.AuthorId == id);
             }
         }
     }
