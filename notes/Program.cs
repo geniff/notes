@@ -47,31 +47,6 @@ using (var scope = app.Services.CreateScope())
             logger.LogInformation("Подключение к базе данных успешно.");
             logger.LogInformation($"📊 База данных: {context.Database.GetDbConnection().Database}");
             logger.LogInformation($"🔗 Сервер: {context.Database.GetDbConnection().DataSource}");
-            var note = new Note
-            {
-                Title = "Тестовая записка",
-                Article = "Это тестовая записка для проверки подключения к базе данных.",
-            };
-            
-            context.Notes.Add(note);
-            context.SaveChanges();
-
-            var author = new Author
-            {
-                Login = "Глеб1",
-                PasswordHash = "12345",
-            };
-            context.Authors.Add(author);
-            context.SaveChanges();
-
-            var comment = new Comments
-            {
-                AuthorId = author.AuthorId,
-                Comment = "text",
-                Note = note
-            };
-            context.Comments.Add(comment);
-            context.SaveChanges();
 
         }
         else
