@@ -1,17 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using notes.Data;
-using notes.Models;
-using System.Linq.Expressions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Добавление сервисов
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
 
-// Правильная конфигурация Swagger
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -22,13 +19,24 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddCors();
+// CORS: разрешаем все источники, методы и заголовки
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 // Конфигурация базы данных
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(9, 4, 0))));
+        new MySqlServerVersion(new Version(9, 4, 0))
+    )
+);
 
 var app = builder.Build();
 
@@ -40,14 +48,11 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        var canConnect = context.Database.CanConnect();
-
-        if (canConnect)
+        if (context.Database.CanConnect())
         {
             logger.LogInformation("Подключение к базе данных успешно.");
-            logger.LogInformation($"📊 База данных: {context.Database.GetDbConnection().Database}");
-            logger.LogInformation($"🔗 Сервер: {context.Database.GetDbConnection().DataSource}");
-
+            logger.LogInformation($"База данных: {context.Database.GetDbConnection().Database}");
+            logger.LogInformation($"Сервер: {context.Database.GetDbConnection().DataSource}");
         }
         else
         {
@@ -60,7 +65,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Настройка конвейера запросов
+// Конвейер обработки запросов
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -70,28 +75,43 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Маршруты API
-app.MapGet("obj2", () => new { Автор = "Глеб", Id = 2 });
-app.MapGet("/string", () => new DayModel().GetDay());
-app.MapGet("/number", () => { return 2; });
-app.MapGet("/data", () => { return DateTime.Now; })
-    .WithOpenApi(operation => 
-    {
-        operation.Summary = "Получить текущую дату и время";
-        operation.Description = "Этот эндпоинт возвращает текущую дату и время сервера.";
-        return operation;
-    });
-app.MapGet("/obj", () => new { День = "Вторник", Асия = "Курмаева", Время = DateTime.Now });
-
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseRouting();
 
-app.UseCors(policy =>
-    policy.AllowAnyOrigin()
-          .AllowAnyMethod()
-          .AllowAnyHeader());
+// Используем CORS
+app.UseCors("AllowAll");
 
 app.UseAuthorization();
 app.MapControllers();
+
+// Статические файлы
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+// Главная страница
+app.MapGet("/", async (HttpContext context) =>
+{
+    var htmlPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "index.html");
+    if (File.Exists(htmlPath))
+    {
+        context.Response.ContentType = "text/html";
+        await context.Response.SendFileAsync(htmlPath);
+    }
+    else
+    {
+        context.Response.ContentType = "text/html";
+        await context.Response.WriteAsync(@"
+            <html>
+                <head><title>Notes API</title></head>
+                <body>
+                    <h1>Notes API работает! ✅</h1>
+                    <p><a href='/swagger'>Swagger UI</a></p>
+                    <p><a href='/api/Notes'>Все заметки (API)</a></p>
+                    <p><a href='/index.html'>Приложение заметок</a></p>
+                </body>
+            </html>
+        ");
+    }
+});
+
 app.Run();

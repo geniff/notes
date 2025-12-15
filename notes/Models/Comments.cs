@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace notes.Models
@@ -6,8 +7,7 @@ namespace notes.Models
     public class Comments
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // AI
-        [Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("id_comment")]
         public int IdComment { get; set; }
 
@@ -17,18 +17,17 @@ namespace notes.Models
 
         [Required]
         [Column("author_id")]
-        public int AuthorId { get; set; }
+        public int AuthorId { get; set; } // 0 = Гость
 
         [Required]
         [Column("comment")]
-        public required string Comment { get; set; }
+        public string Comment { get; set; }
 
         [Required]
         [Column("article_id")]
         public int NoteId { get; set; }
 
         [ForeignKey("NoteId")]
-        public required Note Note { get; set; }
-
+        public Note? Note { get; set; }
     }
 }

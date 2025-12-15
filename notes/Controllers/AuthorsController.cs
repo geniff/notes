@@ -16,12 +16,14 @@
         {
             private readonly ApplicationDbContext _context;
 
+            // DI
             public AuthorsController(ApplicationDbContext context)
             {
                 _context = context;
             }
 
             // GET: api/Authors
+            // Получение авторов
             [HttpGet]
             public async Task<ActionResult<IEnumerable<Author>>> GetAuthor()
             {
@@ -29,6 +31,7 @@
             }
 
             // GET: api/Authors/5
+            // Получение автора по ид
             [HttpGet("{id}")]
             public async Task<ActionResult<Author>> GetAuthor(int id)
             {
@@ -43,6 +46,7 @@
             }
 
             // PUT: api/Authors/5
+            // Обновление автора
             [HttpPut("{id}")]
             public async Task<IActionResult> PutAuthor(int id, Author author)
             {
@@ -73,6 +77,7 @@
             }
 
             // POST: api/Authors
+            // Создание автора
             [HttpPost]
             public async Task<ActionResult<Author>> PostAuthor(Author author)
             {
